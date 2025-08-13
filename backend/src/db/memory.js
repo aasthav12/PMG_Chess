@@ -8,25 +8,30 @@ if (!MONGO_URI) {
   throw new Error('MONGO_URI is not set. Check your .env file and dotenv path.');
 }
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(MONGO_URI, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+let client, db;
 
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+async function connectToMongo() {
+    if(!db){
+        const uri = process.env.MONGO_URI;
+        client = new MongoClient(uri, {
+            serverApi: {
+                version: ServerApiVersion.v1,
+                strict: true,
+                deprecationErrors: true,
+            }
+        });
+        await client.connect();
+        db = client.db("PMG-Chess");
+        await db.collection("users").createIndex({email: 1}, {unique: true});
+        console.log("Connected to MongoDB");
+    }
+    return db;
 }
-run().catch(console.dir);
+
+function getDb() {
+    if (!db) throw new Error("Database not connected.");
+    return db;
+}
+
+module.exports = { connectToMongo, getDb };
