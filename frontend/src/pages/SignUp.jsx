@@ -4,20 +4,33 @@ export default function SignUp() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
-    const handleSubmit = (e) => {
+    const [password, setPassword] = useState("");
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log(
             firstName,
             lastName,
-            email
+            email,
+            password
         );
-        // Add your form submission logic here
+        try {
+            const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName, email, password })
+            });
+            const data = await res.json();
+            console.log("User created:", data);
+        } catch (err) {
+            console.error(err);
+        }
     };
     const handleReset = () => {
         // Reset all state variables here
         setFirstName("");
         setLastName("");
         setEmail("");
+        setPassword("");
     };
 
     return (
@@ -27,7 +40,7 @@ export default function SignUp() {
             <h2>Input Fields</h2>
             <fieldset>
                 <form action="#" method="get">
-                    <label for="firstname">
+                    <label htmlFor="firstname">
                         First Name
                     </label>
                     <input 
@@ -41,7 +54,7 @@ export default function SignUp() {
                         placeholder="Enter First Name"
                         required
                     />
-                    <label for="lastname">
+                    <label htmlFor="lastname">
                         Last Name
                     </label>
                     <input 
@@ -55,7 +68,7 @@ export default function SignUp() {
                         placeholder="Enter Last Name"
                         required
                     />
-                    <label for="email">
+                    <label htmlFor="email">
                         Enter Email
                     </label>
                     <input 
@@ -67,6 +80,20 @@ export default function SignUp() {
                             setEmail(e.target.value)
                         }
                         placeholder="Enter Email"
+                        required
+                    />
+                    <label htmlFor="password">
+                        Enter Password
+                    </label>
+                    <input 
+                        type="password"
+                        name="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
+                        placeholder="Enter Password"
                         required
                     />
                     <button
