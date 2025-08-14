@@ -13,7 +13,7 @@ router.post('/signup', async (req, res) => {
         const users = db.collection('users');
 
         const existingUser = await users.findOne({email: email.toLowerCase() });
-        if (existing) {
+        if (existingUser) {
             return res.status(409).json({ error: 'User with this email already exists.' });
         }
 
