@@ -32,12 +32,25 @@ export default function SignUp() {
         : await res.text();
 
       if (!res.ok) {
-        throw new Error(
-          (typeof payload === "string" && payload) ||
-          payload?.message ||
-          `HTTP ${res.status} ${res.statusText}`
-        );
-      }
+  console.error(" Signup failed:", {
+    status: res.status, 
+    statusText: res.statusText,
+    payload
+  });
+
+    const serverMessage =
+        (payload && (payload.error || payload.message)) ||
+        (typeof payload === "string" && payload) ||
+        res.statusText ||
+        `HTTP ${res.status}`;
+
+    // EITHER: throw so catch() shows it
+    throw new Error(serverMessage);
+
+    // OR (alternative): show it and stop here
+    // setError(serverMessage);
+    // return;
+    }
 
       // ✅ Success — refresh the page
       // (If you want to drop any search/hash too, you could use:

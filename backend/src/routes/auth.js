@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../db/memory');
+const { hashPassword, verifyPassword } = require('../lib/hash');
+const { validateEmail } = require('../lib/validate');
 
 router.post('/signup', async (req, res) => {
     try {
@@ -11,20 +13,24 @@ router.post('/signup', async (req, res) => {
 
         const db = getDb();
         const users = db.collection('users');
-
+        const isEmailValid = validateEmail(email);
+        if (!isEmailValid) {
+            return res.status(400).json({ error: 'Invalid email format. Must be a pmg.com email.' });
+        }
         const existingUser = await users.findOne({email: email.toLowerCase() });
         if (existingUser) {
             return res.status(409).json({ error: 'User with this email already exists.' });
         }
+        const passwordHash = await hashPassword(password);
 
         const doc = {
             firstName,
             lastName,
             email: email.toLowerCase(),
-            password,
+            password: passwordHash,
             createdAt: new Date()
         }
-        const {insertedId} = await users.insertOne(doc);
+        const {insertedId} = await users.insertOne({...doc, password: passwordHash});
         res.status(201).json({_id: insertedId, message: `User ${firstName} ${lastName} Account Created Successfully`});
 
     } catch (error) {
@@ -46,10 +52,15 @@ router.post('/login', async (req, res) => {
 
         const db = getDb();
         const users = db.collection('users');
-
+        
         const existingUser = await users.findOne({email: email.toLowerCase() });
         if (!existingUser) {
-            return res.status(401).json({ error: 'Invalid Credentials or Account Does Not Exist' });
+            return res.status(401).json({ error: 'Account Does Not Exist' });
+        }
+
+        const isPasswordValid = await verifyPassword(password, existingUser.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid Password' });
         }
 
         res.status(200).json({ message: `User ${existingUser.firstName} ${existingUser.lastName} Logged In Successfully` });
