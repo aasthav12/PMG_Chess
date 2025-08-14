@@ -8,8 +8,14 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5050', // <- your API port (avoid 5000 on macOS)
+        target: 'http://127.0.0.1:5050',   // 👈 force IPv4
         changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (_pr, req) => console.log('→ proxy', req.method, req.url))
+          proxy.on('proxyRes', (res, req) => console.log('← proxy', res.statusCode, req.method, req.url))
+          proxy.on('error', (err, req) => console.error('proxy error', err.code || err.message, req.method, req.url))
+        },
       },
     },
   },

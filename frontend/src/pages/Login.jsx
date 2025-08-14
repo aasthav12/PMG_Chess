@@ -10,13 +10,13 @@ export default function Login() {
           password
       );
       try {
-          const res = await fetch('/api/auth/signup', {
+          const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
           });
           const data = await res.json();
-          console.log("User created:", data);
+          console.log("User Logged In:", data);
       } catch (err) {
           console.error(err);
       }
